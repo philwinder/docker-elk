@@ -1,10 +1,6 @@
 # Docker ELK stack
 
-[![Join the chat at https://gitter.im/deviantony/fig-elk](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deviantony/fig-elk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 Run the latest version of the ELK (Elasticseach, Logstash, Kibana) stack with Docker and Docker-compose.
-
-It will give you the ability to analyze any data set by using the searching/aggregation capabilities of Elasticseach and the visualization power of Kibana.
 
 Based on the official images:
 
@@ -13,24 +9,19 @@ Based on the official images:
 * [kibana](https://registry.hub.docker.com/_/kibana/)
 
 # Requirements
+This repository assumes you are running on OSX
 
 ## Setup
-
-1. Install [Docker](http://docker.io).
-2. Install [Docker-compose](http://docs.docker.com/compose/install/).
-3. Clone this repository
-
-## SELinux
-
-On distributions which have SELinux enabled out-of-the-box you will need to either re-context the files or set SELinux into Permissive mode in order for docker-elk to start properly.
-For example on Redhat and CentOS, the following will apply the proper context:
-
-````bash
-.-root@centos ~
--$ chcon -R system_u:object_r:admin_home_t:s0 fig-elk/
-````
+1. Install docker-toolkit
+2. Clone this repository
 
 # Usage
+
+Because this will run through the docker-machine vm, we must copy all files to the home directory on the VM:
+
+```bash
+$ docker-machine scp -r . default:/home/docker
+``` 
 
 Start the ELK stack using *docker-compose*:
 
@@ -44,28 +35,27 @@ You can also choose to run it in background (detached mode):
 $ docker-compose up -d
 ```
 
+To access these services, you will need to communicate via your docker-machine VM. It is often easier to add an entry to your hosts file:
+```
+printf "\n%s sandbox" $(docker-machine ip default) | sudo tee -a /etc/hosts
+```
+
 Now that the stack is running, you'll want to inject logs in it. The shipped logstash configuration allows you to send content via tcp:
 
 ```bash
-$ nc localhost 5000 < /path/to/logfile.log
+$ nc sandbox 5000 < /path/to/logfile.log
 ```
 
-And then access Kibana UI by hitting [http://localhost:5601](http://localhost:5601) with a web browser.
+And then access Kibana UI by hitting [http://sandbox:5601](http://sandbox:5601) with a web browser.
 
 You can also access:
-* Sense: [http://localhost:5601/app/sense](http://localhost:5601/app/sense)
-
-*Note*: In order to use Sense, you'll need to query the IP address associated to your *network device* instead of localhost.
+* Sense: [http://sandbox:5601/app/sense](http://sandbox:5601/app/sense)
 
 By default, the stack exposes the following ports:
 * 5000: Logstash TCP input.
 * 9200: Elasticsearch HTTP
 * 9300: Elasticsearch TCP transport
 * 5601: Kibana
-
-*WARNING*: If you're using *boot2docker*, you must access it via the *boot2docker* IP address instead of *localhost*.
-
-*WARNING*: If you're using *Docker Toolbox*, you must access it via the *docker-machine* IP address instead of *localhost*.
 
 # Configuration
 
